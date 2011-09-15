@@ -23,6 +23,9 @@ class CASHPlantTests extends UnitTestCase {
 		// element id 1 shouldn't exist yet
 		$output = $e->getElement(1);
 		$this->assertFalse($output);
+
+		$output = $e->getElement(42);
+		$this->assertTrue($output, 'element 42 should be defined');
 	}
 }
 ?>
