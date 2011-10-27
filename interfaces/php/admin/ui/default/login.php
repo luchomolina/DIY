@@ -21,7 +21,11 @@
 		#loginbox input.button:hover {background-color:#000;color:#fff;border:1px solid #000;}
 		#loginbox input.button:active {background-color:#fff;color:#000;border:1px solid #fff;}
 	</style>
-
+  
+<!--[if lt IE 9]>
+    <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+<![endif]-->
+<script src="https://browserid.org/include.js" type="text/javascript"></script>
 </head>
 <body>
 
