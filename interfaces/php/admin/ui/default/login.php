@@ -33,6 +33,7 @@
         // This code will be invoked once the user has successfully
         // selected an email address they control to sign in with.
         // Need to POST to https://browserid.org/verify
+       gotVerifiedEmail(assertion);
     } else {
         // something went wrong!  the user isn't logged in.
     }
@@ -59,16 +60,10 @@
 				<div id="loginbox">
 					<small><b>CASH Music</b></small>
 					<h1><?php echo $login_message; ?>:</h1>
+<div class="login clickable" style="opacity: 1.0;">
+    <img alt="Sign in" src="/interfaces/php/admin/ui/default/assets/images/sign_in_blue.png">
+</div>
 			
-					<form method="post" action=""> 
-						<label for="address">email</label>
-						<input type="text" name="address" value="" /><br />
-						<label for="address">password</label>
-						<input type="password" name="password" value="" /><br />
-						<input type="hidden" name="login" value="1" /> 
-						<div style="text-align:right;">
-						<input type="submit" value="log in" class="button" /><br />
-						</div>
 					</form>
 				</div>
 			</div>
