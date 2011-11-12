@@ -26,6 +26,18 @@
     <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
 <![endif]-->
 <script src="https://browserid.org/include.js" type="text/javascript"></script>
+<script src="/interfaces/php/admin/ui/default/assets/scripts/browserid.js" type="text/javascript"></script>
+<script type="text/javascript">
+    navigator.id.getVerifiedEmail(function(assertion) {
+    if (assertion) {
+        // This code will be invoked once the user has successfully
+        // selected an email address they control to sign in with.
+        // Need to POST to https://browserid.org/verify
+    } else {
+        // something went wrong!  the user isn't logged in.
+    }
+});
+</script>
 </head>
 <body>
 
