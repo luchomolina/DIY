@@ -133,6 +133,247 @@
 		return $markup;
 	}
 
+	public function parseMetaData($post_data) {
+		$metadata_and_tags = array(
+			'metadata_details' => array(),
+			'tags_details' => array()
+		);
+		foreach ($post_data as $key => $value) {
+			if (substr($key,0,3) == 'tag' && $value !== '') {
+				$metadata_and_tags['tags_details'][] = $value;
+				$metadata_and_tags['total_tags'] = count($metadata_and_tags['tags_details']);
+			}
+			if (substr($key,0,11) == 'metadatakey' && $value !== '') {
+				$metadatavalue = $_POST[str_replace('metadatakey','metadatavalue',$key)];
+				if ($metadatavalue) {
+					$metadata_and_tags['metadata_details'][$value] = $metadatavalue;
+				}
+			}
+		}
+		return $metadata_and_tags;
+	}
+
+	public function drawCountryCodeUL($selected='USA') {
+		$all_codes = array(
+			'USA',
+			'Brazil',
+			'Canada',
+			'Czech Republic',
+			'France',
+			'Germany',
+			'Italy',
+			'Japan',
+			'United Kingdom',
+			'',
+			'Afghanistan',
+			'Albania',
+			'Algeria',
+			'Andorra',
+			'Angola',
+			'Antigua &amp; Deps',
+			'Argentina',
+			'Armenia',
+			'Australia',
+			'Austria',
+			'Azerbaijan',
+			'Bahamas',
+			'Bahrain',
+			'Bangladesh',
+			'Barbados',
+			'Belarus',
+			'Belgium',
+			'Belize',
+			'Benin',
+			'Bhutan',
+			'Bolivia',
+			'Bosnia Herzegovina',
+			'Botswana',
+			'Brazil',
+			'Brunei',
+			'Bulgaria',
+			'Burkina',
+			'Burundi',
+			'Cambodia',
+			'Cameroon',
+			'Canada',
+			'Cape Verde',
+			'Central African Rep',
+			'Chad',
+			'Chile',
+			'China',
+			'Colombia',
+			'Comoros',
+			'Congo',
+			'Costa Rica',
+			'Croatia',
+			'Cuba',
+			'Cyprus',
+			'Czech Republic',
+			'Denmark',
+			'Djibouti',
+			'Dominica',
+			'Dominican Republic',
+			'East Timor',
+			'Ecuador',
+			'Egypt',
+			'El Salvador',
+			'Equatorial Guinea',
+			'Eritrea',
+			'Estonia',
+			'Ethiopia',
+			'Fiji',
+			'Finland',
+			'France',
+			'Gabon',
+			'Gambia',
+			'Georgia',
+			'Germany',
+			'Ghana',
+			'Greece',
+			'Grenada',
+			'Guatemala',
+			'Guinea',
+			'Guinea-Bissau',
+			'Guyana',
+			'Haiti',
+			'Honduras',
+			'Hungary',
+			'Iceland',
+			'India',
+			'Indonesia',
+			'Iran',
+			'Iraq',
+			'Ireland',
+			'Israel',
+			'Italy',
+			'Ivory Coast',
+			'Jamaica',
+			'Japan',
+			'Jordan',
+			'Kazakhstan',
+			'Kenya',
+			'Kiribati',
+			'Korea North',
+			'Korea South',
+			'Kosovo',
+			'Kuwait',
+			'Kyrgyzstan',
+			'Laos',
+			'Latveria',
+			'Latvia',
+			'Lebanon',
+			'Lesotho',
+			'Liberia',
+			'Libya',
+			'Liechtenstein',
+			'Lithuania',
+			'Luxembourg',
+			'Macedonia',
+			'Madagascar',
+			'Malawi',
+			'Malaysia',
+			'Maldives',
+			'Mali',
+			'Malta',
+			'Marshall Islands',
+			'Mauritania',
+			'Mauritius',
+			'Mexico',
+			'Micronesia',
+			'Moldova',
+			'Monaco',
+			'Mongolia',
+			'Montenegro',
+			'Morocco',
+			'Mozambique',
+			'Myanmar, (Burma)',
+			'Namibia',
+			'Nauru',
+			'Nepal',
+			'Netherlands',
+			'New Zealand',
+			'Nicaragua',
+			'Niger',
+			'Nigeria',
+			'Norway',
+			'Oman',
+			'Pakistan',
+			'Palau',
+			'Panama',
+			'Papua New Guinea',
+			'Paraguay',
+			'Peru',
+			'Philippines',
+			'Poland',
+			'Portugal',
+			'Qatar',
+			'Romania',
+			'Russian Federation',
+			'Rwanda',
+			'St Kitts &amp; Nevis',
+			'St Lucia',
+			'Saint Vincent &amp; the Grenadines',
+			'Samoa',
+			'San Marino',
+			'Sao Tome &amp; Principe',
+			'Saudi Arabia',
+			'Senegal',
+			'Serbia',
+			'Seychelles',
+			'Sierra Leone',
+			'Singapore',
+			'Slovakia',
+			'Slovenia',
+			'Solomon Islands',
+			'Somalia',
+			'South Africa',
+			'Spain',
+			'Sri Lanka',
+			'Sudan',
+			'Suriname',
+			'Swaziland',
+			'Sweden',
+			'Switzerland',
+			'Syria',
+			'Taiwan',
+			'Tajikistan',
+			'Tanzania',
+			'Thailand',
+			'Togo',
+			'Tonga',
+			'Trinidad &amp; Tobago',
+			'Tunisia',
+			'Turkey',
+			'Turkmenistan',
+			'Tuvalu',
+			'Uganda',
+			'Ukraine',
+			'United Arab Emirates',
+			'United Kingdom',
+			'United States',
+			'Uruguay',
+			'Uzbekistan',
+			'Vanuatu',
+			'Vatican City',
+			'Venezuela',
+			'Vietnam',
+			'Yemen',
+			'Zambia',
+			'Zimbabwe'
+		);
+		$all_options = '';
+		$has_selected = false;
+		foreach ($all_codes as $code) {
+			$all_options .= '<option value="' . $code . '"';
+			if (!$has_selected && $code == $selected) {
+				$all_options .= ' selected="selected"';
+				$has_selected = true;
+			}
+			$all_options .= '">' . $code . '</option>';
+		}
+		return $all_options;
+	}
+
 	public function simpleULFromResponse($response,$compact=false,$limit=false) {
 		$markup = '';
 		if ($response['status_code'] == 200) {
@@ -141,26 +382,48 @@
 			$loopcount = 1;
 			foreach ($response['payload'] as $item) {
 				$markup .= '<li> ';
-				if ($response['status_uid'] == "calendar_gettourdates_200" || $response['status_uid'] == "calendar_gettourdatesbetween_200") {
+				if ($response['status_uid'] == "calendar_getevents_200" || $response['status_uid'] == "calendar_geteventsbetween_200") {
 					$event_location = $item['venue_city'] . ', ' . $item['venue_country'];
 					if (strtolower($item['venue_country']) == 'usa' || strtolower($item['venue_country']) == 'canada') {
 						$event_location = $item['venue_city'] . ', ' . $item['venue_region'];
 					}
 					if ($compact) {
-						$markup .= '<b>' . date('d M',$item['date']) . ': ' . $event_location . '</b> '
-								. '<span class="nobr">@ ' . $item['venue_name'] . '</span>';
+						if ($item['venue_name']) { 
+							$markup .= '<b>' . date('d M',$item['date']) . ': ' . $event_location . '</b> '
+									.'<span class="nobr">@ ' . $item['venue_name'] . '</span>'; 
+						} else {
+							$markup .= '<b>' . date('d M',$item['date']) . ' TBA</b> ';
+						}
+								
 					} else {
-						$markup .= '<h4>' . date('d M',$item['date']) . ': ' . $event_location . '</h4> '
-								. '<span class="nobr"><b>@ ' . $item['venue_name'] . '</b></span> <span class="altcopystyle fadedtext">' . $item['comments'] . '</span><br />';
+						if ($item['venue_name']) { 
+							$markup .= '<h4>' . date('d M',$item['date']) . ': ' . $event_location . '</h4> '
+									. '<span class="nobr"><b>@ ' . $item['venue_name'] . '</b></span> <span class="fadedtext">' . $item['comments'] . '</span><br />';
+						} else {
+							$markup .= '<h4>' . date('d M',$item['date']) . ' TBA</h4> '
+									. '<span class="fadedtext">' . $item['comments'] . '</span><br />';
+						}
 					}
 					$markup .= '<div class="itemnav">'
 							. '<a href="' . ADMIN_WWW_BASE_PATH . '/calendar/events/edit/' . $item['event_id'] . '" class="mininav_flush noblock">Edit</a> '
 							. '<a href="' . ADMIN_WWW_BASE_PATH . '/calendar/events/delete/' . $item['event_id'] . '" class="needsconfirmation mininav_flush noblock">Delete</a>'
 							. '</div>';
 					$markup .= '</li>';
+				} elseif ($response['status_uid'] == "calendar_getallvenues_200") {
+					$venue_location = $item['city'] . ', ' . $item['country'];
+					if (strtolower($item['country']) == 'usa' || strtolower($item['country']) == 'canada') {
+						$venue_location = $item['city'] . ', ' . $item['region'];
+					}
+					$markup .= '<b>' . $item['name'] . '</b> '
+							.'// <span class="nobr">' . $venue_location . '</span>'; 
+					$markup .= '<div class="itemnav">'
+							. '<a href="' . ADMIN_WWW_BASE_PATH . '/calendar/venues/edit/' . $item['id'] . '" class="mininav_flush noblock">Edit</a> '
+							. '<a href="' . ADMIN_WWW_BASE_PATH . '/calendar/venues/delete/' . $item['id'] . '" class="needsconfirmation mininav_flush noblock">Delete</a>'
+							. '</div>';
+					$markup .= '</li>';
 				} elseif ($response['status_uid'] == "people_getlistsforuser_200") {
 					$markup .= '<h4>' . $item['name'] . '</h4>'
-							. '<span class="altcopystyle fadedtext">' . $item['description'] . '</span><br />'
+							. $item['description'] . '<br />'
 							. '<div class="itemnav">'
 							. '<a href="' . ADMIN_WWW_BASE_PATH . '/people/lists/view/' . $item['id'] . '" class="mininav_flush">View</a> '
 							. '<a href="' . ADMIN_WWW_BASE_PATH . '/people/lists/edit/' . $item['id'] . '" class="mininav_flush">Edit</a> '
@@ -190,10 +453,10 @@
 		} else {
 			// no dates matched
 			switch($response['action']) {
-				case 'gettourdates':
+				case 'getevents':
 					$markup .= 'There are no matching dates.';
 					break;
-				case 'gettourdatesbetween':
+				case 'geteventsbetween':
 					$markup .= 'There are no matching dates.';
 					break;
 				case 'getlistsforuser':

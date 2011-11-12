@@ -12,7 +12,67 @@
  * See http://www.gnu.org/licenses/agpl-3.0.html
  *
  */abstract class CASHSystem  {
-	
+
+	/**
+	 * Handle annoying environment issues like magic quotes, constants and 
+	 * auto-loaders before firing up the CASH platform and whatnot
+	 *
+	 * @return array
+	 */public static function startUp() {
+		// remove magic quotes, never call them "magic" in front of your friends
+		if (get_magic_quotes_gpc()) {
+		    function stripslashes_from_gpc(&$value) {$value = stripslashes($value);}
+		    $gpc = array(&$_GET, &$_POST, &$_COOKIE, &$_REQUEST);
+		    array_walk_recursive($gpc, 'stripslashes_from_gpc');
+			unset($gpc);
+		}
+		
+		// define constants (use sparingly!)
+		$root = realpath(dirname(__FILE__) . '/../..');
+		define('CASH_PLATFORM_ROOT', $root);
+		
+		// set up auto-load
+		spl_autoload_register('CASHSystem::autoloadClasses');
+	}
+
+	/**
+	 * The main public method to embed elements. Notice that it echoes rather
+	 * than returns, because it's meant to be used simply by calling and spitting
+	 * out the needed code...
+	 *
+	 * @return none
+	 */public static function embedElement($element_id) {
+		// fire up the platform sans-direct-request to catch any GET/POST info sent
+		// in to the page
+		$cash_page_request = new CASHRequest();
+		
+		$cash_body_request = new CASHRequest(
+			array(
+				'cash_request_type' => 'element', 
+				'cash_action' => 'getmarkup',
+				'id' => $element_id, 
+				'status_uid' => $cash_page_request->response['status_uid']
+			)
+		);
+		echo $cash_body_request->response['payload'];
+		unset($cash_page_request);
+		unset($cash_body_request);
+	}
+
+	/**
+	 * If the function name doesn't describe what this one does well enough then
+	 * seriously: you need to stop reading the comments and not worry about it
+	 *
+	 */public static function autoloadClasses($classname) {
+		foreach (array('/classes/core/','/classes/seeds/') as $location) {
+			$file = CASH_PLATFORM_ROOT.$location.$classname.'.php';
+			if (file_exists($file)) {
+				// using 'include' instead of 'require_once' because of efficiency
+				include($file);
+			}
+		}
+	}
+
 	/**
 	 * Formats a proper response, stores it in the session, and returns it
 	 *
@@ -136,6 +196,46 @@
 			$url_contents = $data;
 		}
 		return $url_contents;
+	}
+	
+	/*
+	 * Sends a plain text and HTML email for system things like email verification,
+	 * password resets, etc.
+	 *
+	 * USAGE:
+	 * ASHSystem::sendEmail('test email','CASH Music <info@cashmusic.org>','dev@cashmusic.org','message, with link: http://cashmusic.org/','title');
+	 *
+	 */public static function sendEmail($subject,$fromaddress,$toaddress,$message_text,$message_title) {
+		//create a boundary string. It must be unique 
+		//so we use the MD5 algorithm to generate a random hash
+		$random_hash = md5(date('r', time())); 
+		//define the headers we want passed. Note that they are separated with \r\n
+		$headers = "From: $fromaddress\r\nReply-To: $fromaddress";
+		//add boundary string and mime type specification
+		$headers .= "\r\nContent-Type: multipart/alternative; boundary=\"PHP-alt-".$random_hash."\""; 
+		//define the body of the message.
+		$message = "--PHP-alt-$random_hash\n";
+		$message .= "Content-Type: text/plain; charset=\"iso-8859-1\"\n";
+		$message .= "Content-Transfer-Encoding: 7bit\n\n";
+		$message .= "$message_title\n\n";
+		$message .= $message_text;
+		$message .= "\n--PHP-alt-$random_hash\n"; 
+		$message .= "Content-Type: text/html; charset=\"iso-8859-1\"\n";
+		$message .= "Content-Transfer-Encoding: 7bit\n\n";
+		$message .= '<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><title>' . $message_title . '</title></head><body>';
+		$message .= "<style type=\"text/css\">\n";
+		if (file_exists(CASH_PLATFORM_ROOT.'/settings/defaults/system_email_styles.css')) {
+			$message .= file_get_contents(CASH_PLATFORM_ROOT.'/settings/defaults/system_email_styles.css');
+		}
+		$message .= "</style>\n";
+		$message .= "<h1>$message_title</h1>\n";
+		$message .= "<p>";
+		$message .= str_replace("\n","<br />\n",preg_replace('/(http:\/\/(\S*))/', '<a href="\1">\1</a>', $message_text));
+		$message .= "</p></body></html>";
+		$message .= "\n--PHP-alt-$random_hash--\n";
+		//send the email
+		$mail_sent = @mail($toaddress,$subject,$message,$headers);
+		return $mail_sent;
 	}
 } // END class 
 ?>

@@ -23,7 +23,26 @@ class PeoplePlant extends PlantBase {
 		if ($this->action) {
 			switch ($this->action) {
 				case 'signup':
+					if (!$this->checkRequestMethodFor('direct','post','api_key')) return $this->sessionGetLastResponse();
 					if (!$this->requireParameters('list_id','address')) { return $this->sessionGetLastResponse(); }
+					if (isset($this->request['user_id'])) {
+						$list_auth_request = new CASHRequest(
+							array(
+								'cash_request_type' => 'people', 
+								'cash_action' => 'getlistinfo',
+								'id' => $this->request['list_id']
+							)
+						);
+						if ($list_auth_request->response['status_code'] == '200') {
+							if ($list_auth_request->response['payload']['user_id'] != $this->request['user_id']) {
+								return $this->response->pushResponse(
+									403,$this->request_type,$this->action,
+									null,
+									'awfully presumptuous. you do not have permission to modify this list.'
+								);
+							}
+						}
+					}
 					if (filter_var($this->request['address'], FILTER_VALIDATE_EMAIL)) {
 						if (isset($this->request['comment'])) {$initial_comment = $this->request['comment'];} else {$initial_comment = '';}
 						if (isset($this->request['verified'])) {$verified = $this->request['verified'];} else {$verified = 0;}
@@ -106,9 +125,9 @@ class PeoplePlant extends PlantBase {
 					}
 					break;
 				case 'getlistinfo':
-					if (!$this->checkRequestMethodFor('direct')) return $this->sessionGetLastResponse();
-					if (!$this->requireParameters('list_id')) { return $this->sessionGetLastResponse(); }
-					$result = $this->getListById($this->request['list_id']);
+					if (!$this->checkRequestMethodFor('direct','api_key')) return $this->sessionGetLastResponse();
+					if (!$this->requireParameters('id')) { return $this->sessionGetLastResponse(); }
+					$result = $this->getListById($this->request['id']);
 					if ($result) {
 						return $this->pushSuccess($result,'success. list info included in payload');
 					} else {
@@ -300,6 +319,21 @@ class PeoplePlant extends PlantBase {
 		return $result;
 	}
 
+	public function doListSync($list_id,$pull=true,$push=false) {
+		/*
+		We should call this function whenever a list is first synced to a remote
+		source. If part of an addlist call we only need to do a pull. If it's a
+		new sync added to an existing list then we should, in order:
+		
+		 - first test to see if any members are present on the list, if so store them
+		 - do a pull from remote list and add all members
+		 - if the initial test found members, push them to the remote list
+		
+		 - if remote list supports webhooks we should set those up here (if possible)
+		   to enable 2-way sync
+		*/
+	}
+
 	public function addAddress($address,$list_id,$verified=0,$initial_comment='',$additional_data='',$name) {
 		if (filter_var($address, FILTER_VALIDATE_EMAIL)) {
 			// first check to see if the email is already on the list
@@ -325,17 +359,60 @@ class PeoplePlant extends PlantBase {
 							'list_id' => $list_id,
 							'initial_comment' => $initial_comment,
 							'verified' => $verified,
+							'active' => 1
 						)
 					);
-				} else {
-					return false;
+					if ($result) {
+						/*
+						Check for list sync. If found, use the appropriate seed
+						to add the user to the remote list
+						*/
+					}
+					return $result;
+				}
+			} else {
+				// address already present, do nothing but return true
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public function removeAddress($address,$list_id) {
+		$membership_info = $this->getAddressListInfo($address,$list_id);
+		if ($membership_info) {
+			if ($membership_info['active']) {
+				$result = $this->db->setData(
+					'list_members',
+					array(
+						'active' => 0
+					),
+					array(
+						"id" => array(
+							"condition" => "=",
+							"value" => $membership_info['id']
+						)
+					)
+				);
+				if ($result) {
+					/*
+					Check for list sync. If found, use the appropriate seed
+					to remove the user to the remote list
+					*/
 				}
 				return $result;
 			} else {
+				/*
+				user found on our list but already marked inactive. we should
+				now check to see if the list is synced to another list remotely. if
+				so, use the appropriate seed to remove user remotely
+				*/
 				return true;
 			}
 		} else {
-			return false;
+			// true for successful removal. user was never part of our list,
+			// do nothing, do not attempt to sync
+			return true;
 		}
 	}
 

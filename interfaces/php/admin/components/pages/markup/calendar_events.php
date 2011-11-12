@@ -10,7 +10,7 @@
 		interfaces soon.
 	</span></p>
 
-	<form method="post" action="">
+	<form method="post" action="./add/" name="add_event">
 		<input type="hidden" name="doeventadd" value="makeitso" />
 
 		<label for="event_date">Date</label><br />
@@ -25,8 +25,8 @@
 		</select>
 
 		<div class="row_seperator">.</div>
-		<label for="event_comments">Comments (Support, CD Release, etc)</label><br />
-		<textarea rows="3" id="event_comments" name="event_comments"></textarea>
+		<label for="event_comment">Comments (Support, CD Release, etc)</label><br />
+		<textarea rows="3" id="event_comment" name="event_comment"></textarea>
 
 		<div class="row_seperator">.</div>
 		<label for="event_purchase_url">Ticket Purchase URL</label><br />

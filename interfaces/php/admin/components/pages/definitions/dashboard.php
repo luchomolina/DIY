@@ -1,6 +1,6 @@
 <?php
 // add unique page settings:
-$page_title = 'Your Dashboard';
+$page_title = 'Main Page';
 $page_tips = 'Here\'s an overview of your account. Look for help tips on every page.';
 $page_data = array();
 
@@ -30,7 +30,7 @@ $eval_response = $cash_admin->requestAndStore(
 $cash_admin->requestAndStore(
 	array(
 		'cash_request_type' => 'calendar', 
-		'cash_action' => 'gettourdatesbetween',
+		'cash_action' => 'geteventsbetween',
 		'user_id' => AdminHelper::getPersistentData('cash_effective_user'),
 		'cutoff_date_low' => 'now',
 		'cutoff_date_high' => time() + (60*60*24*7) // weird time format, but easy to understand

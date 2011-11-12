@@ -23,6 +23,7 @@ class CalendarPlant extends PlantBase {
 			switch ($this->action) {
 				case 'addvenue':
 					if (!$this->requireParameters('name','city')) { return $this->sessionGetLastResponse(); }
+					if (!$this->checkRequestMethodFor('direct')) return $this->sessionGetLastResponse();
 					$addvenue_address1 = '';
 					$addvenue_address2 = '';
 					$addvenue_region = '';
@@ -44,6 +45,26 @@ class CalendarPlant extends PlantBase {
 						return $this->pushFailure('there was an error adding the venue');
 					}
 					break;
+				case 'editvenue':
+					if (!$this->requireParameters('id','name','city')) { return $this->sessionGetLastResponse(); }
+					if (!$this->checkRequestMethodFor('direct')) return $this->sessionGetLastResponse();
+					$result = $this->editVenue($this->request['id'],$this->request['name'],$this->request['address1'],$this->request['address2'],$this->request['city'],$this->request['region'],$this->request['country'],$this->request['postalcode'],$this->request['url'],$this->request['phone']);
+					if ($result) {
+						return $this->pushSuccess($result,'Venue added. Id in payload.');
+					} else {
+						return $this->pushFailure('there was an error adding the venue');
+					}
+					break;
+				case 'deletevenue':
+					if (!$this->requireParameters('id')) { return $this->sessionGetLastResponse(); }
+					if (!$this->checkRequestMethodFor('direct')) return $this->sessionGetLastResponse();
+					$result = $this->deleteVenue($this->request['id']);
+					if ($result) {
+						return $this->pushSuccess($result,'success. deleted');
+					} else {
+						return $this->pushFailure('there was an error deleting the venue');
+					}
+					break;
 				case 'addevent':
 					if (!$this->requireParameters('date','user_id','venue_id')) { return $this->sessionGetLastResponse(); }
 					$addevent_purchase_url = '';
@@ -56,12 +77,39 @@ class CalendarPlant extends PlantBase {
 					if (isset($this->request['cancelled'])) { $addevent_cancelled = $this->request['cancelled']; }
 					$result = $this->addEvent($this->request['date'],$this->request['user_id'],$this->request['venue_id'],$addevent_purchase_url,$addevent_comment,$addevent_published,$addevent_cancelled);
 					if ($result) {
-						return $this->pushSuccess($result,'Venue added. Id in payload.');
+						return $this->pushSuccess($result,'Event added. Id in payload.');
 					} else {
-						return $this->pushFailure('there was an error adding the venue');
+						return $this->pushFailure('there was an error adding the event');
 					}
 					break;
-				case 'gettourdates':
+				case 'editevent':
+					if (!$this->requireParameters('date','event_id','venue_id')) { return $this->sessionGetLastResponse(); }
+					if (!$this->checkRequestMethodFor('direct')) return $this->sessionGetLastResponse();
+					$addevent_purchase_url = '';
+					$addevent_comment = '';
+					$addevent_published = 0;
+					$addevent_cancelled = 0;
+					if (isset($this->request['purchase_url'])) { $addevent_purchase_url = $this->request['purchase_url']; }
+					if (isset($this->request['comment'])) { $addevent_comment = $this->request['comment']; }
+					if (isset($this->request['published'])) { $addevent_published = $this->request['published']; }
+					if (isset($this->request['cancelled'])) { $addevent_cancelled = $this->request['cancelled']; }
+					$result = $this->editEvent($this->request['date'],$this->request['event_id'],$this->request['venue_id'],$addevent_purchase_url,$addevent_comment,$addevent_published,$addevent_cancelled);
+					if ($result) {
+						return $this->pushSuccess($result,'Event edited.');
+					} else {
+						return $this->pushFailure('there was an error');
+					}
+					break;
+				case 'getevent':
+					if (!$this->requireParameters('event_id')) { return $this->sessionGetLastResponse(); }
+					$result = $this->getEventById($this->request['event_id']);
+					if ($result) {
+						return $this->pushSuccess($result,'Event information in payload.');
+					} else {
+						return $this->pushFailure('could not find event');
+					}
+					break;
+				case 'getevents':
 					if (!$this->requireParameters('user_id','visible_event_types')) { return $this->sessionGetLastResponse(); }
 					$offset = 0;
 					$published_status = 1;
@@ -90,7 +138,7 @@ class CalendarPlant extends PlantBase {
 						return $this->pushFailure('No tourdates were found matching your criteria.');
 					}
 					break;
-				case 'gettourdatesbetween':
+				case 'geteventsbetween':
 					if (!$this->requireParameters('user_id','cutoff_date_low','cutoff_date_high')) { return $this->sessionGetLastResponse(); }
 					$offset = 0;
 					$published_status = 1;
@@ -105,7 +153,18 @@ class CalendarPlant extends PlantBase {
 						return $this->pushFailure('No tourdates were found matching your criteria.');
 					}
 					break;
+				case 'getvenue':
+					if (!$this->requireParameters('id')) { return $this->sessionGetLastResponse(); }
+					if (!$this->checkRequestMethodFor('direct')) return $this->sessionGetLastResponse();
+					$result = $this->getVenueById($this->request['id']);
+					if ($result) {
+						return $this->pushSuccess($result,'Success. Venue information in payload.');
+					} else {
+						return $this->pushFailure('There was an error.');
+					}
+					break;
 				case 'getallvenues':
+					if (!$this->checkRequestMethodFor('direct')) return $this->sessionGetLastResponse();
 					$result = $this->getAllVenues();
 					if ($result) {
 						return $this->pushSuccess($result,'Success. Known venues in payload.');
@@ -149,6 +208,43 @@ class CalendarPlant extends PlantBase {
 		return $result;
 	}
 
+	public function editVenue($venue_id,$name,$address1,$address2,$city,$region,$country,$postalcode,$url,$phone) {
+		$result = $this->db->setData(
+			'venues',
+			array(
+				'name' => $name,
+				'address1' => $address1,
+				'address2' => $address2,
+				'city' => $city,
+				'region' => $region,
+				'country' => $country,
+				'postalcode' => $postalcode,
+				'url' => $url,
+				'phone' => $phone
+			),
+			array(
+				"id" => array(
+					"condition" => "=",
+					"value" => $venue_id
+				)
+			)
+		);
+		return $result;
+	}
+
+	public function deleteVenue($venue_id) {
+		$result = $this->db->deleteData(
+			'venues',
+			array(
+				'id' => array(
+					'condition' => '=',
+					'value' => $venue_id
+				)
+			)
+		);
+		return $result;
+	}
+
 	public function addEvent($date,$user_id,$venue_id,$purchase_url,$comment,$published,$cancelled) {
 		$result = $this->db->setData(
 			'events',
@@ -160,6 +256,27 @@ class CalendarPlant extends PlantBase {
 				'cancelled' => $cancelled,
 				'purchase_url' => $purchase_url,
 				'comments' => $comment
+			)
+		);
+		return $result;
+	}
+
+	public function editEvent($date,$event_id,$venue_id,$purchase_url,$comment,$published,$cancelled) {
+		$result = $this->db->setData(
+			'events',
+			array(
+				'date' => $date,
+				'venue_id' => $venue_id,
+				'published' => $published,
+				'cancelled' => $cancelled,
+				'purchase_url' => $purchase_url,
+				'comments' => $comment
+			),
+			array(
+				"id" => array(
+					"condition" => "=",
+					"value" => $event_id
+				)
 			)
 		);
 		return $result;
@@ -204,12 +321,18 @@ class CalendarPlant extends PlantBase {
 		return $result;
 	}
 
-	public function getDateByID($date_id) {
-		$result = $this->db->doSpecialQuery(
-			'CalendarPlant_getDateById',
-			array('date_id' => $date_id)
+	public function getEventById($event_id) {
+		$result = $this->db->getData(
+			'CalendarPlant_getEventById',
+			false,
+			array(
+				"event_id" => array(
+					"condition" => "=",
+					"value" => $event_id
+				)
+			)
 		);
-		return $result;
+		return $result[0];
 	}
 
 	public function getVenueById($venue_id) {
