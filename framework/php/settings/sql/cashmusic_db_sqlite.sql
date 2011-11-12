@@ -1,8 +1,7 @@
 -- 
 -- Created by SQL::Translator::Producer::SQLite
--- Created on Fri Sep 16 13:38:43 2011
+-- Created on Sat Nov 12 10:10:22 2011
 -- 
-
 
 BEGIN TRANSACTION;
 
@@ -19,7 +18,7 @@ CREATE TABLE asst_assets (
   description text,
   public_status bool DEFAULT '0',
   creation_date int(11) DEFAULT NULL,
-  modification_date int(11) DEFAULT '0'
+  modification_date int(11) DEFAULT 0
 );
 
 CREATE INDEX asst_asets_parent_id ON asst_assets (parent_id);
@@ -48,8 +47,8 @@ CREATE TABLE cmrc_products (
   type varchar(100) DEFAULT NULL,
   beneficiary varchar(50) DEFAULT NULL,
   sub_term_seconds int(11) DEFAULT NULL,
-  qty_total int(11) NOT NULL DEFAULT '0',
-  creation_date int(11) NOT NULL DEFAULT '0',
+  qty_total int(11) NOT NULL DEFAULT 0,
+  creation_date int(11) NOT NULL DEFAULT 0,
   modification_date int(11) DEFAULT NULL
 );
 
@@ -69,15 +68,15 @@ CREATE TABLE cmrc_transactions (
   transaction_id varchar(24) NOT NULL DEFAULT '',
   transaction_status varchar(32) NOT NULL DEFAULT '',
   transaction_currency varchar(8) NOT NULL DEFAULT '',
-  transaction_amount int(11) NOT NULL DEFAULT '0',
-  transaction_fee decimal(9,2) NOT NULL DEFAULT '0.00',
-  is_fulfilled smallint(1) NOT NULL DEFAULT '0',
+  transaction_amount int(11) NOT NULL DEFAULT 0,
+  transaction_fee decimal(9,2) NOT NULL DEFAULT 0.00,
+  is_fulfilled smallint(1) NOT NULL DEFAULT 0,
   referral_code varchar(191) DEFAULT NULL,
   nvp_request_json text,
   nvp_response_json text,
   nvp_details_json text,
-  creation_date int(11) NOT NULL DEFAULT '0',
-  modification_date int(11) DEFAULT '0'
+  creation_date int(11) NOT NULL DEFAULT 0,
+  modification_date int(11) DEFAULT 0
 );
 
 --
@@ -126,7 +125,7 @@ CREATE TABLE lock_codes (
   uid tinytext,
   element_id int(11) DEFAULT NULL,
   claim_date int(11) DEFAULT NULL,
-  creation_date int(11) DEFAULT '0',
+  creation_date int(11) DEFAULT 0,
   modification_date int(11) DEFAULT NULL
 );
 
@@ -139,7 +138,7 @@ CREATE TABLE lock_passwords (
   id INTEGER PRIMARY KEY NOT NULL,
   password text,
   element_id int(11) DEFAULT NULL,
-  creation_date int(11) DEFAULT '0',
+  creation_date int(11) DEFAULT 0,
   modification_date int(11) DEFAULT NULL
 );
 
@@ -150,14 +149,14 @@ CREATE INDEX lock_passwords_element_id ON lock_passwords (element_id);
 --
 CREATE TABLE asst_analytics (
   id INTEGER PRIMARY KEY NOT NULL,
-  asset_id int(11) NOT NULL DEFAULT '0',
+  asset_id int(11) NOT NULL DEFAULT 0,
   element_id int(11) DEFAULT NULL,
   access_time int(11) NOT NULL,
   client_ip varchar(39) NOT NULL,
   client_proxy varchar(39) NOT NULL,
   cash_session_id varchar(24) NOT NULL,
   creation_date int(11) DEFAULT NULL,
-  modification_date int(11) DEFAULT '0'
+  modification_date int(11) DEFAULT 0
 );
 
 CREATE INDEX asst_analytics_asset_id ON asst_analytics (id);
@@ -168,13 +167,13 @@ CREATE INDEX asst_analytics_asset_id ON asst_analytics (id);
 CREATE TABLE lock_permissions (
   id INTEGER PRIMARY KEY NOT NULL,
   user_id int(11) NOT NULL,
-  user_list_id int(11) NOT NULL DEFAULT '0',
-  element_id int(11) NOT NULL DEFAULT '0',
-  allowed_logins int(11) NOT NULL DEFAULT '-1',
-  total_logins int(11) NOT NULL DEFAULT '0',
-  date_expires int(11) NOT NULL DEFAULT '-1',
+  user_list_id int(11) NOT NULL DEFAULT 0,
+  element_id int(11) NOT NULL DEFAULT 0,
+  allowed_logins int(11) NOT NULL DEFAULT -1,
+  total_logins int(11) NOT NULL DEFAULT 0,
+  date_expires int(11) NOT NULL DEFAULT -1,
   element_password tinytext,
-  added_by int(11) NOT NULL DEFAULT '0',
+  added_by int(11) NOT NULL DEFAULT 0,
   creation_date int(11) DEFAULT NULL,
   modification_date int(11) DEFAULT NULL
 );
@@ -220,7 +219,7 @@ CREATE TABLE user_lists (
   user_id int(11) NOT NULL,
   settings_id int(11) NOT NULL,
   creation_date int(11) DEFAULT NULL,
-  modification_date int(11) DEFAULT '0'
+  modification_date int(11) DEFAULT 0
 );
 
 --
@@ -228,9 +227,9 @@ CREATE TABLE user_lists (
 --
 CREATE TABLE user_resetpassword (
   id INTEGER PRIMARY KEY NOT NULL,
-  time_requested int(11) NOT NULL DEFAULT '0',
+  time_requested int(11) NOT NULL DEFAULT 0,
   random_key tinytext NOT NULL,
-  user_id int(11) NOT NULL DEFAULT '0',
+  user_id int(11) NOT NULL DEFAULT 0,
   creation_date int(11) DEFAULT NULL,
   modification_date int(11) DEFAULT NULL
 );
@@ -244,7 +243,7 @@ CREATE TABLE elmt_elements (
   name text,
   type text NOT NULL,
   options text,
-  license_id int(11) DEFAULT '0',
+  license_id int(11) DEFAULT 0,
   creation_date int(11) DEFAULT NULL,
   modification_date int(11) DEFAULT NULL
 );
@@ -264,7 +263,7 @@ CREATE TABLE elmt_analytics (
   client_proxy varchar(39) NOT NULL,
   cash_session_id varchar(24) NOT NULL,
   creation_date int(11) DEFAULT NULL,
-  modification_date int(11) DEFAULT '0'
+  modification_date int(11) DEFAULT 0
 );
 
 CREATE INDEX elmt_analytics_element_id ON elmt_analytics (element_id);
@@ -295,7 +294,7 @@ CREATE TABLE user_lists_members (
   initial_comment text,
   additional_data text,
   creation_date int(11) DEFAULT NULL,
-  modification_date int(11) DEFAULT '0'
+  modification_date int(11) DEFAULT 0
 );
 
 CREATE INDEX user_lists_members_user_id ON user_lists_members (user_id);
@@ -309,10 +308,10 @@ CREATE TABLE live_guestlist (
   id INTEGER PRIMARY KEY NOT NULL,
   event_id int(128) NOT NULL,
   guest_name text,
-  total_attendees int(11) NOT NULL DEFAULT '1',
+  total_attendees int(11) NOT NULL DEFAULT 1,
   comment text NOT NULL,
   creation_date int(11) DEFAULT NULL,
-  modification_date int(11) DEFAULT '0'
+  modification_date int(11) DEFAULT 0
 );
 
 --
@@ -321,8 +320,8 @@ CREATE TABLE live_guestlist (
 CREATE TABLE base_metadata (
   id INTEGER PRIMARY KEY NOT NULL,
   scope_table_alias varchar(64) NOT NULL DEFAULT '',
-  scope_table_id int(11) NOT NULL DEFAULT '0',
-  user_id int(11) NOT NULL DEFAULT '0',
+  scope_table_id int(11) NOT NULL DEFAULT 0,
+  user_id int(11) NOT NULL DEFAULT 0,
   type text,
   value text NOT NULL,
   creation_date int(11) DEFAULT NULL,
