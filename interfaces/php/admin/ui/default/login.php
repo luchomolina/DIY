@@ -63,7 +63,15 @@
 <div class="login clickable" style="opacity: 1.0;">
     <img alt="Sign in" src="/interfaces/php/admin/ui/default/assets/images/sign_in_blue.png">
 </div>
-			
+									<form method="post" action=""> 
+											<label for="address">email</label>
+											<input type="text" name="address" value="" /><br />
+											<label for="address">password</label>
+											<input type="password" name="password" value="" /><br />
+											<input type="hidden" name="login" value="1" /> 
+											<div style="text-align:right;">
+											<input type="submit" value="log in" class="button" /><br />
+											</div>
 					</form>
 				</div>
 			</div>
